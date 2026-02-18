@@ -43,6 +43,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import platformOverviewImg from './assets/platform-overview.png';
 
 const FORM_SUBMISSION_EMAIL = 'fredassistize@gmail.com';
 const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${FORM_SUBMISSION_EMAIL}`;
@@ -326,6 +327,20 @@ const CalculatorSection = () => {
   const annualSpendOptions = ['Under $10M', '$10M–$49M', '$50M–$99M', '$100M+', 'Prefer not to say'];
   const employeeBaseOptions = ['1–499', '500–2,499', '2,500–4,999', '5,000–9,999', '10,000+'];
 
+  const isScheduleDemoValid =
+    formData.name.trim().length > 0 &&
+    formData.title.trim().length > 0 &&
+    formData.workEmail.trim().length > 0 &&
+    /\S+@\S+\.\S+/.test(formData.workEmail) &&
+    formData.employer.trim().length > 0;
+
+  const isCalculatorValid =
+    formData.name.trim().length > 0 &&
+    formData.title.trim().length > 0 &&
+    formData.workEmail.trim().length > 0 &&
+    /\S+@\S+\.\S+/.test(formData.workEmail) &&
+    formData.employer.trim().length > 0;
+
   return (
     <section id="calculator" className="min-h-screen bg-[#004D40] flex items-center justify-center py-20">
       <div className="max-w-2xl mx-auto px-4 w-full">
@@ -454,7 +469,7 @@ const CalculatorSection = () => {
             <div className="flex justify-center pt-2">
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={!isCalculatorValid || submitting}
                 className="bg-[#C4E86B] text-[#004D40] px-12 py-3 rounded-full text-base font-semibold hover:bg-[#d4f07d] transition-all transform hover:scale-105 disabled:opacity-70 disabled:pointer-events-none"
               >
                 {submitting ? 'Sending…' : 'Calculate'}
@@ -858,28 +873,9 @@ const HowEveryoneWins = () => {
 
 // Get Started CTA Section
 const GetStartedCTA = () => {
-  const [showThankYou, setShowThankYou] = useState(false);
-
-  if (showThankYou) {
-    return (
-      <section className="min-h-[60vh] bg-[#004D40] flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center px-4"
-        >
-          <CareRewardsLogo className="justify-center mb-8" />
-          <h2 className="text-white text-xl mb-4">
-            Thank you for your interest in our services.
-          </h2>
-          <p className="text-white/80 mb-2">
-            Our availability for a demo has been delivered to your email address.
-          </p>
-          <p className="text-white/80">We look meeting you soon.</p>
-        </motion.div>
-      </section>
-    );
-  }
+  const handleClick = () => {
+    document.getElementById('schedule-demo')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <section className="py-20 bg-[#004D40]">
@@ -897,7 +893,7 @@ const GetStartedCTA = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          onClick={() => setShowThankYou(true)}
+          onClick={handleClick}
           className="bg-[#C4E86B] text-[#004D40] px-8 py-3 rounded-full text-base font-semibold hover:bg-[#d4f07d] transition-all transform hover:scale-105"
         >
           Schedule Demo
@@ -1337,7 +1333,7 @@ const ResultsSection = () => {
   );
 };
 
-// Platform Overview Section — Employer Dashboard & Employee App (per Platform Overview / Slide 23)
+// Platform Overview Section — uses provided combined mockup image
 const PlatformOverview = () => {
   return (
     <section id="platform" className="py-20 bg-white">
@@ -1346,157 +1342,22 @@ const PlatformOverview = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-bold text-center text-[#004D40] mb-2"
+          className="text-3xl md:text-4xl font-bold text-center text-[#004D40] mb-6"
         >
           Platform Overview
         </motion.h2>
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center text-gray-500 mb-12"
+          className="flex justify-center"
         >
-          Employer Dashboard & Employee App
-        </motion.p>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-          {/* Employer Dashboard mockup */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
-          >
-            <h3 className="text-lg font-bold text-gray-900 mb-3 px-4 pt-4">Employer Dashboard</h3>
-            <div className="bg-gray-50/80 rounded-b-xl p-4 space-y-4">
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                <div className="w-8 h-8 rounded bg-[#004D40]" />
-                <span className="font-medium text-gray-700">CareReward Dashboard Demo</span>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                <span>Overview</span><span>List of Business</span><span>Commercial Group</span><span>Product Type</span><span>Type ▾</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { icon: '$', label: 'Total PMPM', value: '$600', sub: '-57% vs. Prior Quarter' },
-                  { icon: '🌿', label: 'Active Membership', value: '23,383' },
-                  { icon: '⊕', label: 'Medical PMPM', value: '$517' },
-                  { icon: '💊', label: 'Rx PMPM', value: '$163' },
-                ].map((card, i) => (
-                  <div key={i} className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                    <div className="text-[#004D40] font-bold text-lg">{card.value}</div>
-                    <div className="text-xs text-gray-600">{card.label}</div>
-                    {card.sub && <div className="text-xs text-gray-500">{card.sub}</div>}
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-white border border-gray-200 rounded-lg p-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-semibold text-gray-700">1) Population Health Status</span>
-                    <button type="button" className="text-xs text-[#004D40] font-medium">View Details</button>
-                  </div>
-                  <div className="text-xs text-gray-600 space-y-1">
-                    <div>Hypertension (High Blood Pressure) 28.0%</div>
-                    <div>Diabetes Mellitus Type II 1.2%</div>
-                    <div>High Cholesterol 24.0%</div>
-                  </div>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-semibold text-gray-700">2) Reward System Performance</span>
-                    <button type="button" className="text-xs text-[#004D40] font-medium">View Details</button>
-                  </div>
-                  <div className="text-xs text-gray-600">Active Participants, Points Awarded, Engagement Rate</div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-3 pt-2">
-                {['View Reports', 'Manage Rewards', 'Opportunities', 'Opportunity Analysis'].map((label, i) => (
-                  <div key={i} className="flex flex-col items-center gap-1">
-                    <div className="w-10 h-10 rounded-full border-2 border-[#004D40] flex items-center justify-center text-[#004D40] text-xs">{i + 1}</div>
-                    <span className="text-xs text-gray-600">{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 mt-4 px-4 text-center italic">
-              Employers monitor PMPM cost, population health and rewards engagement.
-            </p>
-          </motion.div>
-
-          {/* Employee App — 3 phone screens */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-          >
-            <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">Employee App</h3>
-            <div className="flex justify-center gap-2 sm:gap-4 flex-wrap">
-              {/* Screen 1: Opportunities */}
-              <div className="w-40 sm:w-44 bg-white border-2 border-gray-200 rounded-[2rem] p-2 shadow-lg">
-                <div className="h-48 rounded-[1.5rem] bg-gray-50 overflow-hidden text-xs p-3 space-y-2">
-                  <div className="font-semibold text-[#004D40]">Discover ways to earn rewards and save on healthcare.</div>
-                  <div className="font-medium text-gray-700">Substitution Opportunities</div>
-                  <div className="bg-[#C4E86B]/30 border border-[#004D40]/30 rounded-lg p-2">
-                    <div className="text-[#004D40] font-semibold">Medication Opportunity</div>
-                    <div className="text-[#004D40]">50 pts + 10 pts monthly</div>
-                    <button type="button" className="mt-1 text-[#004D40] font-medium text-xs">How To Earn</button>
-                  </div>
-                  <div className="border rounded-lg p-2">
-                    <div className="font-medium">Mail Delivery Opportunity — 10 pts</div>
-                    <button type="button" className="text-[#004D40] text-xs">Get Started</button>
-                  </div>
-                </div>
-                <div className="flex justify-around py-2 text-[#004D40] border-t border-gray-100">
-                  <span className="text-xs">Dashboard</span><span className="text-xs font-bold">Opportunities</span><span className="text-xs">Live</span><span className="text-xs">Profile</span>
-                </div>
-              </div>
-              {/* Screen 2: Dashboard */}
-              <div className="w-40 sm:w-44 bg-white border-2 border-[#004D40] rounded-[2rem] p-2 shadow-lg ring-2 ring-[#C4E86B]/50">
-                <div className="h-48 rounded-[1.5rem] bg-gray-50 overflow-hidden text-xs p-3 space-y-2">
-                  <div className="bg-[#004D40] text-[#C4E86B] rounded-lg p-2 text-center font-bold">245 Points</div>
-                  <button type="button" className="w-full bg-[#C4E86B] text-[#004D40] rounded py-1 font-semibold text-xs">Redeem My Points</button>
-                  <div>Welcome to CareReward — We help you navigate your health journey.</div>
-                  <div className="flex justify-between"><span>4 new opportunities</span><span>7 missed opportunities</span></div>
-                  <div className="space-y-1 text-gray-600">
-                    <div>OCT 17 — Annual wellness visit +57 pts</div>
-                    <div>OCT 18 — Refill prescription +9 pts</div>
-                    <div>OCT 13 — Hospital admission +250 pts</div>
-                    <div>OCT 1 — Mail-order switch +25 pts</div>
-                  </div>
-                </div>
-                <div className="flex justify-around py-2 border-t border-gray-100">
-                  <span className="text-xs font-bold text-[#004D40]">Dashboard</span><span className="text-xs">Opportunities</span><span className="text-xs">Live</span><span className="text-xs">Profile</span>
-                </div>
-              </div>
-              {/* Screen 3: Health records */}
-              <div className="w-40 sm:w-44 bg-white border-2 border-gray-200 rounded-[2rem] p-2 shadow-lg">
-                <div className="h-48 rounded-[1.5rem] bg-gray-50 overflow-hidden text-xs p-3">
-                  <div className="font-semibold text-[#004D40] mb-2">+ Health records</div>
-                  <div className="bg-white border rounded-lg p-2 mb-2 flex items-center gap-2">
-                    <span>📅</span><span>Schedule an Annual Physical</span>
-                  </div>
-                  <div className="space-y-1 text-gray-600">
-                    <div className="flex justify-between">All records <span>103 · Today</span></div>
-                    <div className="flex justify-between">Referrals <span>3 · Jan 24</span></div>
-                    <div className="flex justify-between">Allergies <span>1 · Oct 29</span></div>
-                    <div className="flex justify-between">Conditions <span>17 · Oct 29</span></div>
-                    <div className="flex justify-between">Immunizations <span>14 · Nov 5</span></div>
-                    <div className="flex justify-between">Lab results <span>287 · Dec 29</span></div>
-                    <div className="flex justify-between">Medications <span>73 · Nov 24</span></div>
-                  </div>
-                </div>
-                <div className="flex justify-around py-2 border-t border-gray-100 text-gray-500">
-                  <span className="text-xs">Dashboard</span><span className="text-xs">Opportunities</span><span className="text-xs">Live</span><span className="text-xs font-medium">Profile</span>
-                </div>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 mt-4 text-center italic">
-              Employees receive personalized insights, decision support, and cash rewards to drive reduced spend.
-            </p>
-          </motion.div>
-        </div>
+          <img
+            src={platformOverviewImg}
+            alt="Platform Overview - Employer Dashboard and Employee App"
+            className="w-full max-w-5xl rounded-xl shadow-xl"
+          />
+        </motion.div>
       </div>
     </section>
   );
@@ -1746,7 +1607,7 @@ const ScheduleDemoForm = () => {
             <div className="flex justify-center pt-2">
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={!isScheduleDemoValid || submitting}
                 className="bg-[#C4E86B] text-[#004D40] px-12 py-3 rounded-full text-base font-semibold hover:bg-[#d4f07d] transition-all transform hover:scale-105 disabled:opacity-70 disabled:pointer-events-none"
               >
                 {submitting ? 'Sending…' : 'Schedule Demo'}
