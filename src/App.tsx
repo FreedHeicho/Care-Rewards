@@ -35,6 +35,53 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+
+const FORM_SUBMISSION_EMAIL = 'fredassistize@gmail.com';
+const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${FORM_SUBMISSION_EMAIL}`;
+
+const FORM_LABELS: Record<string, string> = {
+  name: 'Name',
+  title: 'Title',
+  workEmail: 'Work Email',
+  employer: 'Employer / Company',
+  employeeBase: 'Employee Base',
+  location: 'Location / Region',
+  primaryInterest: 'Primary Interest',
+  annualHealthSpend: 'Annual Health Spend',
+};
+
+async function submitFormToEmail(
+  formData: Record<string, string>,
+  subject: string
+): Promise<{ ok: boolean; error?: string }> {
+  const payload: Record<string, string> = {
+    _subject: subject,
+    _template: 'table',
+    _captcha: 'false',
+  };
+  Object.entries(formData).forEach(([key, value]) => {
+    if (value.trim()) payload[FORM_LABELS[key] || key] = value;
+  });
+  try {
+    const res = await fetch(FORMSUBMIT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return { ok: false, error: await res.text() };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Failed to send' };
+  }
+}
 
 // Logo Component
 const CareRewardsLogo = ({ className = '', color = 'white' }: { className?: string; color?: string }) => (
@@ -92,9 +139,9 @@ const Navigation = () => {
                 {link.label}
               </a>
             ))}
-            <button className="bg-[#C4E86B] text-[#004D40] px-5 py-2 rounded-full text-sm font-semibold hover:bg-[#d4f07d] transition-colors">
+            <a href="#schedule-demo" className="bg-[#C4E86B] text-[#004D40] px-5 py-2 rounded-full text-sm font-semibold hover:bg-[#d4f07d] transition-colors">
               Schedule Demo
-            </button>
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -127,9 +174,9 @@ const Navigation = () => {
                   {link.label}
                 </a>
               ))}
-              <button className="w-full bg-[#C4E86B] text-[#004D40] px-5 py-2 rounded-full text-sm font-semibold">
+              <a href="#schedule-demo" className="w-full block text-center bg-[#C4E86B] text-[#004D40] px-5 py-2 rounded-full text-sm font-semibold" onClick={() => setIsMobileMenuOpen(false)}>
                 Schedule Demo
-              </button>
+              </a>
             </div>
           </motion.div>
         )}
@@ -233,10 +280,17 @@ const CalculatorSection = () => {
     annualHealthSpend: '',
   });
   const [showThankYou, setShowThankYou] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowThankYou(true);
+    setSubmitError(null);
+    setSubmitting(true);
+    const { ok, error } = await submitFormToEmail(formData, 'CareRewards Calculator / Savings Submission');
+    setSubmitting(false);
+    if (ok) setShowThankYou(true);
+    else setSubmitError(error || 'Something went wrong. Please try again.');
   };
 
   if (showThankYou) {
@@ -268,64 +322,149 @@ const CalculatorSection = () => {
     );
   }
 
+  const primaryInterestOptions = ['Cost reduction', 'Population health', 'Rewards engagement', 'ROI / savings', 'Other'];
+  const annualSpendOptions = ['Under $10M', '$10M–$49M', '$50M–$99M', '$100M+', 'Prefer not to say'];
+  const employeeBaseOptions = ['1–499', '500–2,499', '2,500–4,999', '5,000–9,999', '10,000+'];
+
   return (
     <section id="calculator" className="min-h-screen bg-[#004D40] flex items-center justify-center py-20">
-      <div className="max-w-4xl mx-auto px-4 w-full">
-        <motion.form
+      <div className="max-w-2xl mx-auto px-4 w-full">
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          onSubmit={handleSubmit}
-          className="space-y-4"
+          className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl p-8 md:p-10"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { name: 'name', placeholder: 'Name' },
-              { name: 'title', placeholder: 'Title' },
-              { name: 'workEmail', placeholder: 'Work Email', type: 'email' },
-              { name: 'employer', placeholder: 'Employer' },
-              { name: 'employeeBase', placeholder: 'Employee Base' },
-              { name: 'location', placeholder: 'Location' },
-            ].map((field) => (
-              <input
-                key={field.name}
-                type={field.type || 'text'}
-                placeholder={field.placeholder}
-                value={formData[field.name as keyof typeof formData]}
-                onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                className="w-full px-6 py-3 bg-transparent border border-white/40 rounded-full text-white placeholder-white/60 focus:outline-none focus:border-[#C4E86B] transition-colors text-center"
-                required
-              />
-            ))}
-          </div>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <input
-              type="text"
-              placeholder="Primary Interest"
-              value={formData.primaryInterest}
-              onChange={(e) => setFormData({ ...formData, primaryInterest: e.target.value })}
-              className="w-full sm:w-48 px-6 py-3 bg-transparent border border-white/40 rounded-full text-white placeholder-white/60 focus:outline-none focus:border-[#C4E86B] transition-colors text-center"
-            />
-            <input
-              type="text"
-              placeholder="Annual Health Spend"
-              value={formData.annualHealthSpend}
-              onChange={(e) => setFormData({ ...formData, annualHealthSpend: e.target.value })}
-              className="w-full sm:w-48 px-6 py-3 bg-transparent border border-white/40 rounded-full text-white placeholder-white/60 focus:outline-none focus:border-[#C4E86B] transition-colors text-center"
-            />
-          </div>
-          <div className="flex justify-center pt-4">
-            <button
-              type="submit"
-              className="bg-[#C4E86B] text-[#004D40] px-12 py-3 rounded-full text-base font-semibold hover:bg-[#d4f07d] transition-all transform hover:scale-105"
-            >
-              Calculate
-            </button>
-          </div>
+          <h2 className="text-xl font-bold text-white mb-1 text-center">Calculate Your Savings</h2>
+          <p className="text-white/80 text-sm text-center mb-6">Complete the form below to receive a custom report.</p>
+          <motion.form onSubmit={handleSubmit} className="space-y-5">
+            <fieldset className="space-y-4 border border-white/20 rounded-xl p-4 md:p-5">
+              <legend className="text-[#C4E86B] font-semibold px-2">Contact & organization</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="calc-name" className="text-white/90 text-sm">Name *</Label>
+                  <input
+                    id="calc-name"
+                    type="text"
+                    placeholder="Your name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="calc-title" className="text-white/90 text-sm">Title *</Label>
+                  <input
+                    id="calc-title"
+                    type="text"
+                    placeholder="Job title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="calc-email" className="text-white/90 text-sm">Work email *</Label>
+                <input
+                  id="calc-email"
+                  type="email"
+                  placeholder="you@company.com"
+                  value={formData.workEmail}
+                  onChange={(e) => setFormData({ ...formData, workEmail: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="calc-employer" className="text-white/90 text-sm">Employer / company *</Label>
+                  <input
+                    id="calc-employer"
+                    type="text"
+                    placeholder="Company name"
+                    value={formData.employer}
+                    onChange={(e) => setFormData({ ...formData, employer: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="calc-employeeBase" className="text-white/90 text-sm">Employee base</Label>
+                  <Select value={formData.employeeBase} onValueChange={(v) => setFormData({ ...formData, employeeBase: v })}>
+                    <SelectTrigger id="calc-employeeBase" className="w-full bg-white/10 border-white/40 text-white [&>span]:text-white/90">
+                      <SelectValue placeholder="Select range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employeeBaseOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="calc-location" className="text-white/90 text-sm">Location / region</Label>
+                <input
+                  id="calc-location"
+                  type="text"
+                  placeholder="e.g. California, Northeast"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                />
+              </div>
+            </fieldset>
+            <fieldset className="space-y-4 border border-white/20 rounded-xl p-4 md:p-5">
+              <legend className="text-[#C4E86B] font-semibold px-2">Interest & spend</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white/90 text-sm">Primary interest</Label>
+                  <Select value={formData.primaryInterest} onValueChange={(v) => setFormData({ ...formData, primaryInterest: v })}>
+                    <SelectTrigger className="w-full bg-white/10 border-white/40 text-white [&>span]:text-white/90">
+                      <SelectValue placeholder="Select one" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {primaryInterestOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/90 text-sm">Annual health spend</Label>
+                  <Select value={formData.annualHealthSpend} onValueChange={(v) => setFormData({ ...formData, annualHealthSpend: v })}>
+                    <SelectTrigger className="w-full bg-white/10 border-white/40 text-white [&>span]:text-white/90">
+                      <SelectValue placeholder="Select range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {annualSpendOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </fieldset>
+            {submitError && (
+              <p className="text-red-300 text-sm text-center" role="alert">{submitError}</p>
+            )}
+            <div className="flex justify-center pt-2">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="bg-[#C4E86B] text-[#004D40] px-12 py-3 rounded-full text-base font-semibold hover:bg-[#d4f07d] transition-all transform hover:scale-105 disabled:opacity-70 disabled:pointer-events-none"
+              >
+                {submitting ? 'Sending…' : 'Calculate'}
+              </button>
+            </div>
+          </motion.form>
           <div className="flex justify-center pt-8">
             <CareRewardsLogo />
           </div>
-        </motion.form>
+        </motion.div>
       </div>
     </section>
   );
@@ -777,8 +916,11 @@ const GetStartedCTA = () => {
   );
 };
 
+const YOUTUBE_EMBED_URL = 'https://www.youtube.com/embed/prQtrp7KNDg?autoplay=1';
+
 // How It Works Page Section
 const HowItWorksHero = () => {
+  const [videoOpen, setVideoOpen] = useState(false);
   return (
     <section className="py-20 bg-[#004D40]">
       <div className="max-w-4xl mx-auto px-4 text-center">
@@ -799,11 +941,29 @@ const HowItWorksHero = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          onClick={() => setVideoOpen(true)}
           className="inline-flex items-center gap-2 bg-[#C4E86B] text-[#004D40] px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#d4f07d] transition-all mb-8"
         >
           <Play size={16} fill="currentColor" />
           Watch 2-Min Demo
         </motion.button>
+
+        <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
+          <DialogContent className="max-w-4xl bg-[#004D40] border-[#C4E86B]/30 p-0 overflow-hidden">
+            <DialogHeader className="p-4 pb-0">
+              <DialogTitle className="text-[#C4E86B] text-lg">CareRewards — 2-Min Demo</DialogTitle>
+            </DialogHeader>
+            <div className="relative w-full aspect-video p-4 pt-2">
+              <iframe
+                src={videoOpen ? YOUTUBE_EMBED_URL : ''}
+                title="CareRewards 2-Min Demo"
+                className="absolute inset-0 w-full h-full rounded-lg"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -990,7 +1150,7 @@ const UseCaseSection = () => {
             />
             <h3 className="font-bold text-[#004D40] mb-2">And Her Doctor</h3>
             <div className="inline-block bg-[#C4E86B]/30 text-[#004D40] px-4 py-2 rounded-lg text-sm">
-              who referred Sarah to NYP for care
+              who referred Sarah to Hospital A for care
             </div>
           </motion.div>
 
@@ -1004,15 +1164,15 @@ const UseCaseSection = () => {
           >
             <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3">
               <Check className="text-green-500" size={20} />
-              <span className="font-medium text-gray-700">NewYork-Presbyterian</span>
+              <span className="font-medium text-gray-700">Hospital A (Academic Medical Center)</span>
             </div>
             <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3 opacity-50">
               <X className="text-red-500" size={20} />
-              <span className="font-medium text-gray-700">NYU Langone Health</span>
+              <span className="font-medium text-gray-700">Hospital B (Academic Medical Center)</span>
             </div>
             <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3 opacity-50">
               <X className="text-red-500" size={20} />
-              <span className="font-medium text-gray-700">NYC Health + Hospitals</span>
+              <span className="font-medium text-gray-700">Regional Health System</span>
             </div>
           </motion.div>
         </div>
@@ -1032,7 +1192,7 @@ const RecommendationSection = () => {
           viewport={{ once: true }}
           className="text-3xl md:text-4xl font-bold text-center text-[#004D40] mb-12"
         >
-          CareRewards recommends NYC H+H
+          CareRewards recommends Regional Health System
         </motion.h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
@@ -1054,7 +1214,7 @@ const RecommendationSection = () => {
                   </div>
                   <div className="bg-[#C4E86B]/20 rounded-xl p-4 mb-4">
                     <div className="text-2xl font-bold text-[#004D40]">3,600 Points</div>
-                    <div className="text-sm text-[#004D40]">NYC HEALTH + HOSPITALS</div>
+                    <div className="text-sm text-[#004D40]">REGIONAL HEALTH SYSTEM</div>
                   </div>
                   <div className="bg-gray-100 rounded-lg p-3 text-xs text-gray-600">
                     Welcome to CareRewards!
@@ -1075,7 +1235,7 @@ const RecommendationSection = () => {
           >
             <div className="bg-[#C4E86B]/20 border-l-4 border-[#C4E86B] p-4 rounded-r-lg">
               <p className="text-[#004D40] italic">
-                "NYC H+H is one of the country's best hospitals for maternity care. Choose them and earn 3,600 in cash rewards!"
+                "Our recommended Regional Health System is one of the country's best for maternity care. Choose them and earn 3,600 in cash rewards!"
               </p>
             </div>
 
@@ -1087,21 +1247,21 @@ const RecommendationSection = () => {
               <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3 opacity-50">
                 <div className="flex items-center gap-2">
                   <X className="text-red-500" size={18} />
-                  <span className="text-sm">NewYork-Presbyterian</span>
+                  <span className="text-sm">Hospital A (Academic Medical Center)</span>
                 </div>
                 <span className="text-red-500 font-bold">$68k</span>
               </div>
               <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3 opacity-50">
                 <div className="flex items-center gap-2">
                   <X className="text-red-500" size={18} />
-                  <span className="text-sm">NYU Langone Health</span>
+                  <span className="text-sm">Hospital B (Academic Medical Center)</span>
                 </div>
                 <span className="text-purple-600 font-bold">$51k</span>
               </div>
               <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3">
                 <div className="flex items-center gap-2">
                   <Check className="text-green-500" size={18} />
-                  <span className="text-sm font-medium">NYC Health + Hospitals</span>
+                  <span className="text-sm font-medium">Regional Health System</span>
                 </div>
                 <span className="text-[#004D40] font-bold">$32k</span>
               </div>
@@ -1177,7 +1337,7 @@ const ResultsSection = () => {
   );
 };
 
-// Platform Overview Section
+// Platform Overview Section — Employer Dashboard & Employee App (per Platform Overview / Slide 23)
 const PlatformOverview = () => {
   return (
     <section id="platform" className="py-20 bg-white">
@@ -1186,48 +1346,154 @@ const PlatformOverview = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-bold text-center text-[#004D40] mb-12"
+          className="text-3xl md:text-4xl font-bold text-center text-[#004D40] mb-2"
         >
           Platform Overview
         </motion.h2>
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center text-gray-500 mb-12"
+        >
+          Employer Dashboard & Employee App
+        </motion.p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Employer Dashboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          {/* Employer Dashboard mockup */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            className="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
           >
-            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Employer Dashboard</h3>
-            <div className="bg-gray-50 rounded-xl p-4 shadow-lg">
-              <img
-                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop"
-                alt="Employer Dashboard"
-                className="w-full h-64 object-cover rounded-lg"
-              />
+            <h3 className="text-lg font-bold text-gray-900 mb-3 px-4 pt-4">Employer Dashboard</h3>
+            <div className="bg-gray-50/80 rounded-b-xl p-4 space-y-4">
+              <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                <div className="w-8 h-8 rounded bg-[#004D40]" />
+                <span className="font-medium text-gray-700">CareReward Dashboard Demo</span>
+              </div>
+              <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                <span>Overview</span><span>List of Business</span><span>Commercial Group</span><span>Product Type</span><span>Type ▾</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { icon: '$', label: 'Total PMPM', value: '$600', sub: '-57% vs. Prior Quarter' },
+                  { icon: '🌿', label: 'Active Membership', value: '23,383' },
+                  { icon: '⊕', label: 'Medical PMPM', value: '$517' },
+                  { icon: '💊', label: 'Rx PMPM', value: '$163' },
+                ].map((card, i) => (
+                  <div key={i} className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                    <div className="text-[#004D40] font-bold text-lg">{card.value}</div>
+                    <div className="text-xs text-gray-600">{card.label}</div>
+                    {card.sub && <div className="text-xs text-gray-500">{card.sub}</div>}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-semibold text-gray-700">1) Population Health Status</span>
+                    <button type="button" className="text-xs text-[#004D40] font-medium">View Details</button>
+                  </div>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div>Hypertension (High Blood Pressure) 28.0%</div>
+                    <div>Diabetes Mellitus Type II 1.2%</div>
+                    <div>High Cholesterol 24.0%</div>
+                  </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-semibold text-gray-700">2) Reward System Performance</span>
+                    <button type="button" className="text-xs text-[#004D40] font-medium">View Details</button>
+                  </div>
+                  <div className="text-xs text-gray-600">Active Participants, Points Awarded, Engagement Rate</div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3 pt-2">
+                {['View Reports', 'Manage Rewards', 'Opportunities', 'Opportunity Analysis'].map((label, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1">
+                    <div className="w-10 h-10 rounded-full border-2 border-[#004D40] flex items-center justify-center text-[#004D40] text-xs">{i + 1}</div>
+                    <span className="text-xs text-gray-600">{label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="text-sm text-gray-500 mt-4 text-center italic">
-              Employers monitor PMPM cost, population health and rewards engagement
+            <p className="text-sm text-gray-500 mt-4 px-4 text-center italic">
+              Employers monitor PMPM cost, population health and rewards engagement.
             </p>
           </motion.div>
 
-          {/* Employee App */}
+          {/* Employee App — 3 phone screens */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
-            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Employee App</h3>
-            <div className="bg-gray-50 rounded-xl p-4 shadow-lg">
-              <img
-                src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=400&fit=crop"
-                alt="Employee App"
-                className="w-full h-64 object-cover rounded-lg"
-              />
+            <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">Employee App</h3>
+            <div className="flex justify-center gap-2 sm:gap-4 flex-wrap">
+              {/* Screen 1: Opportunities */}
+              <div className="w-40 sm:w-44 bg-white border-2 border-gray-200 rounded-[2rem] p-2 shadow-lg">
+                <div className="h-48 rounded-[1.5rem] bg-gray-50 overflow-hidden text-xs p-3 space-y-2">
+                  <div className="font-semibold text-[#004D40]">Discover ways to earn rewards and save on healthcare.</div>
+                  <div className="font-medium text-gray-700">Substitution Opportunities</div>
+                  <div className="bg-[#C4E86B]/30 border border-[#004D40]/30 rounded-lg p-2">
+                    <div className="text-[#004D40] font-semibold">Medication Opportunity</div>
+                    <div className="text-[#004D40]">50 pts + 10 pts monthly</div>
+                    <button type="button" className="mt-1 text-[#004D40] font-medium text-xs">How To Earn</button>
+                  </div>
+                  <div className="border rounded-lg p-2">
+                    <div className="font-medium">Mail Delivery Opportunity — 10 pts</div>
+                    <button type="button" className="text-[#004D40] text-xs">Get Started</button>
+                  </div>
+                </div>
+                <div className="flex justify-around py-2 text-[#004D40] border-t border-gray-100">
+                  <span className="text-xs">Dashboard</span><span className="text-xs font-bold">Opportunities</span><span className="text-xs">Live</span><span className="text-xs">Profile</span>
+                </div>
+              </div>
+              {/* Screen 2: Dashboard */}
+              <div className="w-40 sm:w-44 bg-white border-2 border-[#004D40] rounded-[2rem] p-2 shadow-lg ring-2 ring-[#C4E86B]/50">
+                <div className="h-48 rounded-[1.5rem] bg-gray-50 overflow-hidden text-xs p-3 space-y-2">
+                  <div className="bg-[#004D40] text-[#C4E86B] rounded-lg p-2 text-center font-bold">245 Points</div>
+                  <button type="button" className="w-full bg-[#C4E86B] text-[#004D40] rounded py-1 font-semibold text-xs">Redeem My Points</button>
+                  <div>Welcome to CareReward — We help you navigate your health journey.</div>
+                  <div className="flex justify-between"><span>4 new opportunities</span><span>7 missed opportunities</span></div>
+                  <div className="space-y-1 text-gray-600">
+                    <div>OCT 17 — Annual wellness visit +57 pts</div>
+                    <div>OCT 18 — Refill prescription +9 pts</div>
+                    <div>OCT 13 — Hospital admission +250 pts</div>
+                    <div>OCT 1 — Mail-order switch +25 pts</div>
+                  </div>
+                </div>
+                <div className="flex justify-around py-2 border-t border-gray-100">
+                  <span className="text-xs font-bold text-[#004D40]">Dashboard</span><span className="text-xs">Opportunities</span><span className="text-xs">Live</span><span className="text-xs">Profile</span>
+                </div>
+              </div>
+              {/* Screen 3: Health records */}
+              <div className="w-40 sm:w-44 bg-white border-2 border-gray-200 rounded-[2rem] p-2 shadow-lg">
+                <div className="h-48 rounded-[1.5rem] bg-gray-50 overflow-hidden text-xs p-3">
+                  <div className="font-semibold text-[#004D40] mb-2">+ Health records</div>
+                  <div className="bg-white border rounded-lg p-2 mb-2 flex items-center gap-2">
+                    <span>📅</span><span>Schedule an Annual Physical</span>
+                  </div>
+                  <div className="space-y-1 text-gray-600">
+                    <div className="flex justify-between">All records <span>103 · Today</span></div>
+                    <div className="flex justify-between">Referrals <span>3 · Jan 24</span></div>
+                    <div className="flex justify-between">Allergies <span>1 · Oct 29</span></div>
+                    <div className="flex justify-between">Conditions <span>17 · Oct 29</span></div>
+                    <div className="flex justify-between">Immunizations <span>14 · Nov 5</span></div>
+                    <div className="flex justify-between">Lab results <span>287 · Dec 29</span></div>
+                    <div className="flex justify-between">Medications <span>73 · Nov 24</span></div>
+                  </div>
+                </div>
+                <div className="flex justify-around py-2 border-t border-gray-100 text-gray-500">
+                  <span className="text-xs">Dashboard</span><span className="text-xs">Opportunities</span><span className="text-xs">Live</span><span className="text-xs font-medium">Profile</span>
+                </div>
+              </div>
             </div>
             <p className="text-sm text-gray-500 mt-4 text-center italic">
-              Employees receive personalized insights, decision support, and cash rewards to drive reduced spend
+              Employees receive personalized insights, decision support, and cash rewards to drive reduced spend.
             </p>
           </motion.div>
         </div>
@@ -1314,14 +1580,22 @@ const ScheduleDemoForm = () => {
     annualHealthSpend: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowThankYou(true);
+    setSubmitError(null);
+    setSubmitting(true);
+    const { ok, error } = await submitFormToEmail(formData, 'CareRewards Schedule Demo Request');
+    setSubmitting(false);
+    if (ok) setShowThankYou(true);
+    else setSubmitError(error || 'Something went wrong. Please try again.');
   };
 
   if (showThankYou) {
     return (
-      <section className="min-h-[60vh] bg-[#004D40] flex items-center justify-center">
+      <section id="schedule-demo" className="min-h-[60vh] bg-[#004D40] flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -1332,72 +1606,157 @@ const ScheduleDemoForm = () => {
             Thank you for your interest in our services.
           </h2>
           <p className="text-white/80 mb-2">
-            Our availability for a demo has been delivered to your email address.
+            Your request has been sent. We will follow up with demo availability.
           </p>
-          <p className="text-white/80">We look meeting you soon.</p>
+          <p className="text-white/80">We look forward to meeting you soon.</p>
         </motion.div>
       </section>
     );
   }
 
+  const primaryInterestOptions = ['Cost reduction', 'Population health', 'Rewards engagement', 'ROI / savings', 'Other'];
+  const annualSpendOptions = ['Under $10M', '$10M–$49M', '$50M–$99M', '$100M+', 'Prefer not to say'];
+  const employeeBaseOptions = ['1–499', '500–2,499', '2,500–4,999', '5,000–9,999', '10,000+'];
+
   return (
-    <section className="py-20 bg-[#004D40]">
-      <div className="max-w-4xl mx-auto px-4">
-        <motion.form
+    <section id="schedule-demo" className="py-20 bg-[#004D40]">
+      <div className="max-w-2xl mx-auto px-4">
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          onSubmit={handleSubmit}
-          className="space-y-4"
+          className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl p-8 md:p-10"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { name: 'name', placeholder: 'Name' },
-              { name: 'title', placeholder: 'Title' },
-              { name: 'workEmail', placeholder: 'Work Email', type: 'email' },
-              { name: 'employer', placeholder: 'Employer' },
-              { name: 'employeeBase', placeholder: 'Employee Base' },
-              { name: 'location', placeholder: 'Location' },
-            ].map((field) => (
-              <input
-                key={field.name}
-                type={field.type || 'text'}
-                placeholder={field.placeholder}
-                value={formData[field.name as keyof typeof formData]}
-                onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                className="w-full px-6 py-3 bg-transparent border border-white/40 rounded-full text-white placeholder-white/60 focus:outline-none focus:border-[#C4E86B] transition-colors text-center"
-                required
-              />
-            ))}
-          </div>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <input
-              type="text"
-              placeholder="Primary Interest"
-              value={formData.primaryInterest}
-              onChange={(e) => setFormData({ ...formData, primaryInterest: e.target.value })}
-              className="w-full sm:w-48 px-6 py-3 bg-transparent border border-white/40 rounded-full text-white placeholder-white/60 focus:outline-none focus:border-[#C4E86B] transition-colors text-center"
-            />
-            <input
-              type="text"
-              placeholder="Annual Health Spend"
-              value={formData.annualHealthSpend}
-              onChange={(e) => setFormData({ ...formData, annualHealthSpend: e.target.value })}
-              className="w-full sm:w-48 px-6 py-3 bg-transparent border border-white/40 rounded-full text-white placeholder-white/60 focus:outline-none focus:border-[#C4E86B] transition-colors text-center"
-            />
-          </div>
-          <div className="flex justify-center pt-4">
-            <button
-              type="submit"
-              className="bg-[#C4E86B] text-[#004D40] px-12 py-3 rounded-full text-base font-semibold hover:bg-[#d4f07d] transition-all transform hover:scale-105"
-            >
-              Schedule Here
-            </button>
-          </div>
+          <h2 className="text-xl font-bold text-white mb-1 text-center">Schedule a Demo</h2>
+          <p className="text-white/80 text-sm text-center mb-6">Fill out the form below and we’ll send you demo options.</p>
+          <motion.form onSubmit={handleSubmit} className="space-y-5">
+            <fieldset className="space-y-4 border border-white/20 rounded-xl p-4 md:p-5">
+              <legend className="text-[#C4E86B] font-semibold px-2">Contact & organization</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="demo-name" className="text-white/90 text-sm">Name *</Label>
+                  <input
+                    id="demo-name"
+                    type="text"
+                    placeholder="Your name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="demo-title" className="text-white/90 text-sm">Title *</Label>
+                  <input
+                    id="demo-title"
+                    type="text"
+                    placeholder="Job title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="demo-email" className="text-white/90 text-sm">Work email *</Label>
+                <input
+                  id="demo-email"
+                  type="email"
+                  placeholder="you@company.com"
+                  value={formData.workEmail}
+                  onChange={(e) => setFormData({ ...formData, workEmail: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="demo-employer" className="text-white/90 text-sm">Employer / company *</Label>
+                  <input
+                    id="demo-employer"
+                    type="text"
+                    placeholder="Company name"
+                    value={formData.employer}
+                    onChange={(e) => setFormData({ ...formData, employer: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="demo-employeeBase" className="text-white/90 text-sm">Employee base</Label>
+                  <Select value={formData.employeeBase} onValueChange={(v) => setFormData({ ...formData, employeeBase: v })}>
+                    <SelectTrigger id="demo-employeeBase" className="w-full bg-white/10 border-white/40 text-white [&>span]:text-white/90">
+                      <SelectValue placeholder="Select range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employeeBaseOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="demo-location" className="text-white/90 text-sm">Location / region</Label>
+                <input
+                  id="demo-location"
+                  type="text"
+                  placeholder="e.g. California, Northeast"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/40 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#C4E86B] focus:ring-1 focus:ring-[#C4E86B]"
+                />
+              </div>
+            </fieldset>
+            <fieldset className="space-y-4 border border-white/20 rounded-xl p-4 md:p-5">
+              <legend className="text-[#C4E86B] font-semibold px-2">Interest & spend</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white/90 text-sm">Primary interest</Label>
+                  <Select value={formData.primaryInterest} onValueChange={(v) => setFormData({ ...formData, primaryInterest: v })}>
+                    <SelectTrigger className="w-full bg-white/10 border-white/40 text-white [&>span]:text-white/90">
+                      <SelectValue placeholder="Select one" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {primaryInterestOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/90 text-sm">Annual health spend</Label>
+                  <Select value={formData.annualHealthSpend} onValueChange={(v) => setFormData({ ...formData, annualHealthSpend: v })}>
+                    <SelectTrigger className="w-full bg-white/10 border-white/40 text-white [&>span]:text-white/90">
+                      <SelectValue placeholder="Select range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {annualSpendOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </fieldset>
+            {submitError && (
+              <p className="text-red-300 text-sm text-center" role="alert">{submitError}</p>
+            )}
+            <div className="flex justify-center pt-2">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="bg-[#C4E86B] text-[#004D40] px-12 py-3 rounded-full text-base font-semibold hover:bg-[#d4f07d] transition-all transform hover:scale-105 disabled:opacity-70 disabled:pointer-events-none"
+              >
+                {submitting ? 'Sending…' : 'Schedule Demo'}
+              </button>
+            </div>
+          </motion.form>
           <div className="flex justify-center pt-8">
             <CareRewardsLogo />
           </div>
-        </motion.form>
+        </motion.div>
       </div>
     </section>
   );
@@ -1555,6 +1914,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <CareRewardsLogo />
           <div className="flex items-center gap-6 text-sm text-white/70">
+            <a href="#schedule-demo" className="hover:text-white transition-colors">Schedule a Demo</a>
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
             <a href="#" className="hover:text-white transition-colors">Contact</a>
