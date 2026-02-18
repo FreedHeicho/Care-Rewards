@@ -43,7 +43,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import platformOverviewImg from './assets/platform-overview.png';
 
 const FORM_SUBMISSION_EMAIL = 'fredassistize@gmail.com';
 const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${FORM_SUBMISSION_EMAIL}`;
@@ -1333,7 +1332,7 @@ const ResultsSection = () => {
   );
 };
 
-// Platform Overview Section — uses provided combined mockup image
+// Platform Overview Section — original two-column layout with existing images
 const PlatformOverview = () => {
   return (
     <section id="platform" className="py-20 bg-white">
@@ -1342,22 +1341,51 @@ const PlatformOverview = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-bold text-center text-[#004D40] mb-6"
+          className="text-3xl md:text-4xl font-bold text-center text-[#004D40] mb-12"
         >
           Platform Overview
         </motion.h2>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex justify-center"
-        >
-          <img
-            src={platformOverviewImg}
-            alt="Platform Overview - Employer Dashboard and Employee App"
-            className="w-full max-w-5xl rounded-xl shadow-xl"
-          />
-        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Employer Dashboard */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Employer Dashboard</h3>
+            <div className="bg-gray-50 rounded-xl p-4 shadow-lg">
+              <img
+                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop"
+                alt="Employer Dashboard"
+                className="w-full h-64 object-cover rounded-lg"
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-4 text-center italic">
+              Employers monitor PMPM cost, population health and rewards engagement
+            </p>
+          </motion.div>
+
+          {/* Employee App */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Employee App</h3>
+            <div className="bg-gray-50 rounded-xl p-4 shadow-lg">
+              <img
+                src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=400&fit=crop"
+                alt="Employee App"
+                className="w-full h-64 object-cover rounded-lg"
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-4 text-center italic">
+              Employees receive personalized insights, decision support, and cash rewards to drive reduced spend
+            </p>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
