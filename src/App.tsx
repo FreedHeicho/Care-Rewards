@@ -326,13 +326,6 @@ const CalculatorSection = () => {
   const annualSpendOptions = ['Under $10M', '$10M–$49M', '$50M–$99M', '$100M+', 'Prefer not to say'];
   const employeeBaseOptions = ['1–499', '500–2,499', '2,500–4,999', '5,000–9,999', '10,000+'];
 
-  const isScheduleDemoValid =
-    formData.name.trim().length > 0 &&
-    formData.title.trim().length > 0 &&
-    formData.workEmail.trim().length > 0 &&
-    /\S+@\S+\.\S+/.test(formData.workEmail) &&
-    formData.employer.trim().length > 0;
-
   const isCalculatorValid =
     formData.name.trim().length > 0 &&
     formData.title.trim().length > 0 &&
@@ -1506,6 +1499,13 @@ const ScheduleDemoForm = () => {
   const primaryInterestOptions = ['Cost reduction', 'Population health', 'Rewards engagement', 'ROI / savings', 'Other'];
   const annualSpendOptions = ['Under $10M', '$10M–$49M', '$50M–$99M', '$100M+', 'Prefer not to say'];
   const employeeBaseOptions = ['1–499', '500–2,499', '2,500–4,999', '5,000–9,999', '10,000+'];
+
+  const isScheduleDemoValid =
+    formData.name.trim().length > 0 &&
+    formData.title.trim().length > 0 &&
+    formData.workEmail.trim().length > 0 &&
+    /\S+@\S+\.\S+/.test(formData.workEmail) &&
+    formData.employer.trim().length > 0;
 
   return (
     <section id="schedule-demo" className="py-20 bg-[#004D40]">
