@@ -43,6 +43,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import platformSlide23 from './assets/platform-overview.png'; // TODO: replace with actual Slide 23 asset if needed
 
 const FORM_SUBMISSION_EMAIL = 'fredassistize@gmail.com';
 const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${FORM_SUBMISSION_EMAIL}`;
@@ -113,6 +114,7 @@ const Navigation = () => {
   const navLinks = [
     { label: 'How It Works', href: '#how-it-works' },
     { label: 'Platform', href: '#platform' },
+    { label: 'For Executives', href: '#executives' },
     { label: 'FAQ', href: '#faq' },
   ];
 
@@ -293,35 +295,6 @@ const CalculatorSection = () => {
     else setSubmitError(error || 'Something went wrong. Please try again.');
   };
 
-  if (showThankYou) {
-    return (
-      <section className="min-h-screen bg-[#004D40] flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center px-4"
-        >
-          <CareRewardsLogo className="justify-center mb-8" />
-          <h2 className="text-white text-xl mb-4">
-            Thank you for your interest in our services.
-          </h2>
-          <p className="text-white/80 mb-2">
-            A custom report will be delivered to your email address shortly.
-          </p>
-          <p className="text-white/80">
-            We look forward to staying in touch with you.
-          </p>
-          <button
-            onClick={() => setShowThankYou(false)}
-            className="mt-8 text-[#C4E86B] hover:underline"
-          >
-            Back to form
-          </button>
-        </motion.div>
-      </section>
-    );
-  }
-
   const primaryInterestOptions = ['Cost reduction', 'Population health', 'Rewards engagement', 'ROI / savings', 'Other'];
   const annualSpendOptions = ['Under $10M', '$10M–$49M', '$50M–$99M', '$100M+', 'Prefer not to say'];
   const employeeBaseOptions = ['1–499', '500–2,499', '2,500–4,999', '5,000–9,999', '10,000+'];
@@ -344,6 +317,11 @@ const CalculatorSection = () => {
         >
           <h2 className="text-xl font-bold text-white mb-1 text-center">Calculate Your Savings</h2>
           <p className="text-white/80 text-sm text-center mb-6">Complete the form below to receive a custom report.</p>
+          {showThankYou && (
+            <div className="mb-4 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 text-center">
+              Thank you for your interest. A custom savings report will be delivered to your email shortly.
+            </div>
+          )}
           <motion.form onSubmit={handleSubmit} className="space-y-5">
             <fieldset className="space-y-4 border border-white/20 rounded-xl p-4 md:p-5">
               <legend className="text-[#C4E86B] font-semibold px-2">Contact & organization</legend>
@@ -863,6 +841,52 @@ const HowEveryoneWins = () => {
   );
 };
 
+// Executives Section
+const ExecutivesSection = () => {
+  const executives = [
+    { name: 'Executive Name 1', title: 'Executive Title 1' },
+    { name: 'Executive Name 2', title: 'Executive Title 2' },
+    { name: 'Executive Name 3', title: 'Executive Title 3' },
+    { name: 'Executive Name 4', title: 'Executive Title 4' },
+  ];
+
+  return (
+    <section id="executives" className="py-20 bg-white">
+      <div className="max-w-6xl mx-auto px-4">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-3xl md:text-4xl font-bold text-center text-[#004D40] mb-12"
+        >
+          For Company Executives
+        </motion.h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+          {executives.map((exec, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.05 }}
+              className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 flex flex-col"
+            >
+              <div className="w-full h-40 bg-gray-100 rounded-lg mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{exec.name}</h3>
+              <p className="text-sm text-gray-600 mb-3">{exec.title}</p>
+              <p className="text-sm text-gray-500">
+                This is a short executive bio placeholder. Replace this text with 2–3 lines describing the
+                executive’s role, experience, and perspective on employee health and benefits.
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // Get Started CTA Section
 const GetStartedCTA = () => {
   const handleClick = () => {
@@ -933,7 +957,7 @@ const HowItWorksHero = () => {
           className="inline-flex items-center gap-2 bg-[#C4E86B] text-[#004D40] px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#d4f07d] transition-all mb-8"
         >
           <Play size={16} fill="currentColor" />
-          Watch 2-Min Demo
+          Watch 7-min Demo
         </motion.button>
 
         <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
@@ -1338,47 +1362,18 @@ const PlatformOverview = () => {
         >
           Platform Overview
         </motion.h2>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Employer Dashboard */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Employer Dashboard</h3>
-            <div className="bg-gray-50 rounded-xl p-4 shadow-lg">
-              <img
-                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop"
-                alt="Employer Dashboard"
-                className="w-full h-64 object-cover rounded-lg"
-              />
-            </div>
-            <p className="text-sm text-gray-500 mt-4 text-center italic">
-              Employers monitor PMPM cost, population health and rewards engagement
-            </p>
-          </motion.div>
-
-          {/* Employee App */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-          >
-            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Employee App</h3>
-            <div className="bg-gray-50 rounded-xl p-4 shadow-lg">
-              <img
-                src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=400&fit=crop"
-                alt="Employee App"
-                className="w-full h-64 object-cover rounded-lg"
-              />
-            </div>
-            <p className="text-sm text-gray-500 mt-4 text-center italic">
-              Employees receive personalized insights, decision support, and cash rewards to drive reduced spend
-            </p>
-          </motion.div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="flex justify-center"
+        >
+          <img
+            src={platformSlide23}
+            alt="Platform Overview - Employer Dashboard and Employee App"
+            className="w-full max-w-5xl rounded-xl shadow-lg"
+          />
+        </motion.div>
       </div>
     </section>
   );
@@ -1475,27 +1470,6 @@ const ScheduleDemoForm = () => {
     else setSubmitError(error || 'Something went wrong. Please try again.');
   };
 
-  if (showThankYou) {
-    return (
-      <section id="schedule-demo" className="min-h-[60vh] bg-[#004D40] flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center px-4"
-        >
-          <CareRewardsLogo className="justify-center mb-8" />
-          <h2 className="text-white text-xl mb-4">
-            Thank you for your interest in our services.
-          </h2>
-          <p className="text-white/80 mb-2">
-            Your request has been sent. We will follow up with demo availability.
-          </p>
-          <p className="text-white/80">We look forward to meeting you soon.</p>
-        </motion.div>
-      </section>
-    );
-  }
-
   const primaryInterestOptions = ['Cost reduction', 'Population health', 'Rewards engagement', 'ROI / savings', 'Other'];
   const annualSpendOptions = ['Under $10M', '$10M–$49M', '$50M–$99M', '$100M+', 'Prefer not to say'];
   const employeeBaseOptions = ['1–499', '500–2,499', '2,500–4,999', '5,000–9,999', '10,000+'];
@@ -1518,6 +1492,11 @@ const ScheduleDemoForm = () => {
         >
           <h2 className="text-xl font-bold text-white mb-1 text-center">Schedule a Demo</h2>
           <p className="text-white/80 text-sm text-center mb-6">Fill out the form below and we’ll send you demo options.</p>
+          {showThankYou && (
+            <div className="mb-4 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 text-center">
+              Thank you for your interest. Your request has been sent and we will follow up with demo availability.
+            </div>
+          )}
           <motion.form onSubmit={handleSubmit} className="space-y-5">
             <fieldset className="space-y-4 border border-white/20 rounded-xl p-4 md:p-5">
               <legend className="text-[#C4E86B] font-semibold px-2">Contact & organization</legend>
@@ -1839,6 +1818,7 @@ function App() {
         <ComparisonSection />
         <ROISection />
         <HowEveryoneWins />
+        <ExecutivesSection />
         <GetStartedCTA />
         <HowItWorksHero />
         <DataTransformation />
